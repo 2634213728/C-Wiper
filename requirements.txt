@@ -1,0 +1,13 @@
+# C-Wiper Requirements
+# Python 3.10+
+
+# Core dependencies
+send2trash>=1.8.2  # Safe file deletion
+
+# GUI (optional, for development)
+customtkinter>=5.2.0  # Modern GUI framework
+
+# Development dependencies (optional)
+# pytest>=7.4.0  # Testing framework
+# pylint>=2.17.0  # Code linting
+# black>=23.0.0  # Code formatting

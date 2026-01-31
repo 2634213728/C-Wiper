@@ -1,0 +1,161 @@
+{
+  "version": "1.0",
+  "description": "C-Wiper 默认扫描规则配置",
+  "last_updated": "2026-01-31",
+  "rules": [
+    {
+      "id": "temp_files",
+      "name": "临时文件",
+      "description": "Windows 和应用程序临时文件",
+      "conditions": {
+        "path_pattern": null,
+        "file_extensions": [
+          ".tmp",
+          ".temp",
+          ".cache",
+          ".bak",
+          ".old"
+        ],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "temp"
+    },
+    {
+      "id": "log_files",
+      "name": "日志文件",
+      "description": "应用程序和系统日志文件",
+      "conditions": {
+        "path_pattern": null,
+        "file_extensions": [
+          ".log",
+          ".log1",
+          ".log2"
+        ],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L2_REVIEW",
+      "enabled": true,
+      "category": "logs"
+    },
+    {
+      "id": "browser_cache",
+      "name": "浏览器缓存",
+      "description": "Chrome、Edge 等浏览器缓存文件",
+      "conditions": {
+        "path_pattern": "*Cache*",
+        "file_extensions": [],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "browser"
+    },
+    {
+      "id": "prefetch_files",
+      "name": "预读文件",
+      "description": "Windows 预读文件（Prefetch）",
+      "conditions": {
+        "path_pattern": "C:/Windows/Prefetch/*.pf",
+        "file_extensions": [".pf"],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "system"
+    },
+    {
+      "id": "thumbnail_cache",
+      "name": "缩略图缓存",
+      "description": "Windows 缩略图缓存",
+      "conditions": {
+        "path_pattern": "*/Local/Microsoft/Windows/Explorer/*",
+        "file_extensions": [".db"],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": "thumbcache"
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "system"
+    },
+    {
+      "id": "recycle_bin",
+      "name": "回收站",
+      "description": "回收站文件（需用户确认）",
+      "conditions": {
+        "path_pattern": "*$Recycle.Bin/*",
+        "file_extensions": [],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L2_REVIEW",
+      "enabled": false,
+      "category": "system"
+    },
+    {
+      "id": "download_files",
+      "name": "下载文件夹",
+      "description": "用户下载目录中的安装包和压缩文件",
+      "conditions": {
+        "path_pattern": "*/Downloads/*",
+        "file_extensions": [
+          ".exe",
+          ".msi",
+          ".zip",
+          ".rar",
+          ".7z"
+        ],
+        "min_size": 1024,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L2_REVIEW",
+      "enabled": true,
+      "category": "user"
+    },
+    {
+      "id": "update_files",
+      "name": "更新残留文件",
+      "description": "Windows 更新残留文件",
+      "conditions": {
+        "path_pattern": "*/Windows/SoftwareDistribution/Download/*",
+        "file_extensions": [],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "system"
+    },
+    {
+      "id": "error_reports",
+      "name": "错误报告",
+      "description": "Windows 错误报告文件",
+      "conditions": {
+        "path_pattern": "*/Microsoft/Windows/WER/*",
+        "file_extensions": [
+          ".wer",
+          ".zip"
+        ],
+        "min_size": null,
+        "max_size": null,
+        "name_pattern": null
+      },
+      "risk_level": "L1_SAFE",
+      "enabled": true,
+      "category": "system"
+    }
+  ]
+}
