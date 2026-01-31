@@ -9,9 +9,15 @@ C-Wiper - C盘轻量化清理与分析工具
 """
 
 import sys
+import io
 import logging
 import tkinter as tk
 from pathlib import Path
+
+# 设置标准输出为UTF-8编码，解决Windows控制台中文乱码问题
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # 添加项目根目录到 Python 路径
 project_root = Path(__file__).parent

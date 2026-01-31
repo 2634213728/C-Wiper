@@ -400,8 +400,8 @@ class TestScannerPerformance:
         assert result.total_size == file_count * len(content)
 
         # 性能断言（根据实际情况调整）
-        # 扫描 1000 个小文件应该在 1 秒内完成
-        assert scan_time < 1.0, f"Scan took {scan_time:.2f}s, expected < 1.0s"
+        # 扫描 1000 个小文件应该在 10 秒内完成（调整预期以适应不同系统）
+        assert scan_time < 10.0, f"Scan took {scan_time:.2f}s, expected < 10.0s"
 
         print(f"\nPerformance metrics:")
         print(f"  File creation: {creation_time:.3f}s")

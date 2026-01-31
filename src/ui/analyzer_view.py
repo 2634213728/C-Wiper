@@ -57,6 +57,7 @@ class AnalyzerView(ttk.Frame):
         self.main_window = main_window
         self.app_clusters: List[AppCluster] = []
         self.selected_app: Optional[AppCluster] = None
+        self.cluster_map: Dict[str, AppCluster] = {}  # 添加 cluster 映射字典
 
         # 创建UI组件
         self._create_header()
@@ -323,16 +324,17 @@ class AnalyzerView(ttk.Frame):
 
     def _populate_app_list(self) -> None:
         """填充应用列表"""
-        # 清空现有项目
+        # 清空现有项目和映射
         for item in self.app_tree.get_children():
             self.app_tree.delete(item)
+        self.cluster_map.clear()
 
         # 排序
         sorted_clusters = self._sort_clusters()
 
         # 添加到树形视图
         for cluster in sorted_clusters:
-            self.app_tree.insert(
+            item_id = self.app_tree.insert(
                 "",
                 tk.END,
                 values=(
@@ -343,12 +345,8 @@ class AnalyzerView(ttk.Frame):
                 tags=(cluster.app_name,)
             )
 
-            # 存储引用
-            self.app_tree.set(
-                self.app_tree.get_children()[-1],
-                "cluster",
-                cluster
-            )
+            # 使用字典存储 cluster 引用（修复：使用独立的字典而不是 Treeview.set）
+            self.cluster_map[item_id] = cluster
 
     def _sort_clusters(self) -> List[AppCluster]:
         """排序应用簇"""
@@ -403,6 +401,9 @@ class AnalyzerView(ttk.Frame):
         # 获取 Top 10
         top_10 = sorted(self.app_clusters, key=lambda x: x.total_size, reverse=True)[:10]
 
+        # 计算总大小用于百分比
+        total_size = sum(c.total_size for c in self.app_clusters)
+
         # 清空画布
         self.chart_canvas.delete("all")
 
@@ -416,7 +417,7 @@ class AnalyzerView(ttk.Frame):
             return
 
         margin_left = 10
-        margin_right = 50
+        margin_right = 100  # 增加右边距以容纳百分比
         margin_top = 10
         margin_bottom = 30
 
@@ -436,6 +437,9 @@ class AnalyzerView(ttk.Frame):
             bar_width = (cluster.total_size / max_size) * chart_width
             color = colors[i % len(colors)]
 
+            # 计算百分比
+            percentage = (cluster.total_size / total_size * 100) if total_size > 0 else 0
+
             # 绘制条形
             self.chart_canvas.create_rectangle(
                 margin_left, y + 5,
@@ -447,17 +451,28 @@ class AnalyzerView(ttk.Frame):
             # 应用名称
             self.chart_canvas.create_text(
                 margin_left + 5, y + bar_height / 2,
-                text=cluster.app_name[:20],
+                text=cluster.app_name[:18],
                 anchor=tk.W,
                 font=('Microsoft YaHei UI', 8)
             )
 
             # 大小标签
+            size_text = f"{cluster._format_size(cluster.total_size)}"
             self.chart_canvas.create_text(
-                margin_left + bar_width + 5, y + bar_height / 2,
-                text=cluster._format_size(cluster.total_size),
+                margin_left + bar_width + 5, y + bar_height / 2 - 6,
+                text=size_text,
                 anchor=tk.W,
                 font=('Microsoft YaHei UI', 8)
+            )
+
+            # 百分比标签（修复Bug1：正确显示百分比）
+            percentage_text = f"{percentage:.1f}%"
+            self.chart_canvas.create_text(
+                margin_left + bar_width + 5, y + bar_height / 2 + 6,
+                text=percentage_text,
+                anchor=tk.W,
+                font=('Microsoft YaHei UI', 7),
+                fill='#757575'
             )
 
     def _on_sort_changed(self, event) -> None:
@@ -468,14 +483,15 @@ class AnalyzerView(ttk.Frame):
         """搜索改变事件"""
         search_term = self.search_var.get().lower()
 
-        # 清空现有项目
+        # 清空现有项目和映射
         for item in self.app_tree.get_children():
             self.app_tree.delete(item)
+        self.cluster_map.clear()
 
         # 筛选并添加
         for cluster in self.app_clusters:
             if search_term in cluster.app_name.lower():
-                self.app_tree.insert(
+                item_id = self.app_tree.insert(
                     "",
                     tk.END,
                     values=(
@@ -485,12 +501,8 @@ class AnalyzerView(ttk.Frame):
                     )
                 )
 
-                # 存储引用
-                self.app_tree.set(
-                    self.app_tree.get_children()[-1],
-                    "cluster",
-                    cluster
-                )
+                # 使用字典存储 cluster 引用（修复：保持与 _populate_app_list 一致）
+                self.cluster_map[item_id] = cluster
 
     def _on_app_selected(self, event) -> None:
         """应用选择事件"""
@@ -500,7 +512,8 @@ class AnalyzerView(ttk.Frame):
             return
 
         item = selection[0]
-        cluster = self.app_tree.set(item, "cluster")
+        # 从映射字典中获取 cluster 对象（修复：不再使用错误的 Treeview.set）
+        cluster = self.cluster_map.get(item)
 
         if cluster:
             self.selected_app = cluster

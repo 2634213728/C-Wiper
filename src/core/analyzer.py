@@ -142,6 +142,18 @@ class AppAnalyzer:
         self.event_bus = event_bus or EventBus()
         self._cancelled = False
 
+        # 定义静态区扫描路径（Program Files）
+        self.static_zones = [
+            Path("C:/Program Files"),
+            Path("C:/Program Files (x86)"),
+        ]
+
+        # 定义动态区扫描路径（AppData）
+        self.dynamic_zones = [
+            Path.home() / "AppData/Roaming",
+            Path.home() / "AppData/Local",
+        ]
+
         logger.info("AppAnalyzer initialized")
 
     def analyze(

@@ -694,18 +694,19 @@ class CleanerView(ttk.Frame):
         """
         扫描完成事件处理器
 
-        从 ScanController 获取匹配的文件并加载到视图中。
+        从 ScanController 获取所有扫描到的文件并加载到视图中。
+        修复Bug2：现在包括未匹配规则的文件，确保显示所有扫描结果。
         """
         try:
-            # 从扫描控制器获取所有匹配的文件
-            matched_files = self.main_window.scan_controller.get_matched_files()
+            # 修复Bug2：获取所有文件，包括未匹配规则的文件
+            all_files = self.main_window.scan_controller.get_matched_files(include_unmatched=True)
 
-            if matched_files:
-                logger.info(f"Loading {len(matched_files)} matched files into view")
-                self.load_scan_results(matched_files)
+            if all_files:
+                logger.info(f"Loading {len(all_files)} files into view (including unmatched)")
+                self.load_scan_results(all_files)
                 self.scan_btn.config(state=tk.NORMAL)
             else:
-                logger.warning("No matched files found")
+                logger.warning("No files found")
                 self.scan_results.clear()
                 self._populate_tree()
                 self._update_stats()

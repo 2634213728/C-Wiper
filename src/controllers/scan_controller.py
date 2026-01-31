@@ -89,9 +89,11 @@ class ScanController:
         # 加载规则
         try:
             self.rule_engine.load_rules()
-            logger.info(f"Loaded {len(self.rule_engine.get_all_rules())} rules")
+            self.rules = self.rule_engine.get_all_rules()
+            logger.info(f"Loaded {len(self.rules)} rules")
         except Exception as e:
             logger.error(f"Failed to load rules: {e}")
+            self.rules = []
 
         logger.info("ScanController initialized")
 
@@ -332,13 +334,14 @@ class ScanController:
         with self._lock:
             return self._results.copy()
 
-    def get_matched_files(self, risk_level: Optional[str] = None) -> List[FileInfo]:
+    def get_matched_files(self, risk_level: Optional[str] = None, include_unmatched: bool = False) -> List[FileInfo]:
         """
         获取匹配规则的文件列表
 
         Args:
             risk_level: 风险等级过滤（如 "L1_SAFE", "L2_REVIEW"）
                       None 表示返回所有匹配的文件
+            include_unmatched: 是否包含未匹配规则的文件，默认为 False
 
         Returns:
             List[FileInfo]: 匹配的文件列表
@@ -346,15 +349,16 @@ class ScanController:
         Example:
             >>> l1_files = controller.get_matched_files("L1_SAFE")
             >>> all_files = controller.get_matched_files()
+            >>> all_files_including_unmatched = controller.get_matched_files(include_unmatched=True)
         """
         with self._lock:
             if risk_level:
                 return self._matched_files.get(risk_level, []).copy()
             else:
-                # 返回所有匹配的文件（不包括 UNMATCHED）
+                # 返回所有匹配的文件
                 all_matched = []
                 for key, files in self._matched_files.items():
-                    if key != 'UNMATCHED':
+                    if include_unmatched or key != 'UNMATCHED':
                         all_matched.extend(files)
                 return all_matched
 

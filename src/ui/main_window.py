@@ -454,8 +454,8 @@ class MainWindow:
         data = event.data
         total_files = data.get('total_files', 0)
         total_size = data.get('total_size', 0)
-        self.update_status(f"扫描完成：{total_files} 个文件")
-        messagebox.showinfo("扫描完成", f"扫描完成！\n发现 {total_files} 个文件\n总大小：{self._format_size(total_size)}")
+        # 修复Bug2：移除弹窗，改为只在状态栏显示，避免打断用户工作流程
+        self.update_status(f"扫描完成：{total_files} 个文件，总大小：{self._format_size(total_size)}")
 
     def _on_scan_failed(self, event: Event) -> None:
         """处理扫描失败事件"""
