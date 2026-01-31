@@ -205,11 +205,10 @@ class AppAnalyzer:
         """
         clusters = []
 
-        # 扫描路径列表
+        # 扫描路径列表（只扫描 Program Files）
         scan_paths = [
             Path("C:/Program Files"),
             Path("C:/Program Files (x86)"),
-            Path(Path.home() / "AppData/Local"),
         ]
 
         for scan_path in scan_paths:

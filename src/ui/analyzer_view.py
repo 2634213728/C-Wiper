@@ -17,6 +17,7 @@ import subprocess
 
 from src.ui.main_window import MainWindow
 from src.core.analyzer import AppCluster
+from src.utils.event_bus import EventBus, EventType, Event
 
 
 # 配置日志
@@ -61,6 +62,9 @@ class AnalyzerView(ttk.Frame):
         self._create_header()
         self._create_control_panel()
         self._create_content_area()
+
+        # 订阅分析完成事件
+        self._subscribe_events()
 
         logger.info("AnalyzerView initialized")
 
@@ -521,20 +525,12 @@ class AnalyzerView(ttk.Frame):
                 progress_callback=self._on_analysis_progress
             )
 
-            if success:
-                logger.info("Analysis started")
-
-                # 等待完成
-                self.main_window.analysis_controller.wait_for_completion(timeout=300)
-
-                # 获取结果
-                clusters = self.main_window.analysis_controller.get_clusters()
-                self.load_analysis_results(clusters)
-
-                self.analyze_btn.config(state=tk.NORMAL)
-            else:
+            if not success:
                 messagebox.showerror("错误", "无法启动分析")
                 self.analyze_btn.config(state=tk.NORMAL)
+            else:
+                logger.info("Analysis started")
+                # 结果将通过事件处理
 
         except Exception as e:
             logger.error(f"Failed to start analysis: {e}")
@@ -631,6 +627,41 @@ class AnalyzerView(ttk.Frame):
                 return f"{size_bytes:.2f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.2f} PB"
+
+    def _subscribe_events(self) -> None:
+        """订阅事件总线事件"""
+        event_bus = EventBus()
+        event_bus.subscribe(EventType.ANALYSIS_COMPLETED, self._on_analysis_completed)
+        event_bus.subscribe(EventType.ANALYSIS_FAILED, self._on_analysis_failed)
+        logger.debug("AnalyzerView subscribed to analysis events")
+
+    def _on_analysis_completed(self, event: Event) -> None:
+        """
+        分析完成事件处理器
+
+        从 AnalysisController 获取分析结果并加载到视图中。
+        """
+        try:
+            clusters = self.main_window.analysis_controller.get_clusters()
+            if clusters:
+                logger.info(f"Loading {len(clusters)} app clusters into view")
+                self.load_analysis_results(clusters)
+                self.analyze_btn.config(state=tk.NORMAL)
+            else:
+                logger.warning("No clusters found")
+                self.app_clusters.clear()
+                self._populate_app_list()
+                self._update_stats()
+                self.analyze_btn.config(state=tk.NORMAL)
+        except Exception as e:
+            logger.error(f"Error loading analysis results: {e}", exc_info=True)
+            self.analyze_btn.config(state=tk.NORMAL)
+
+    def _on_analysis_failed(self, event: Event) -> None:
+        """分析失败事件处理器"""
+        reason = event.data.get('reason', '未知错误')
+        logger.error(f"Analysis failed: {reason}")
+        self.analyze_btn.config(state=tk.NORMAL)
 
 
 def test_analyzer_view():
