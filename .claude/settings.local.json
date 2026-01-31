@@ -5,7 +5,10 @@
       "Bash(test:*)",
       "Bash(python:*)",
       "Bash(findstr:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)"
     ]
   }
 }
