@@ -18,6 +18,7 @@ from typing import List, Optional, Dict, Any
 from src.ui.main_window import MainWindow
 from src.models.scan_result import FileInfo, ScanTarget
 from src.controllers.state_manager import SystemState
+from src.utils.event_bus import EventBus, EventType, Event
 
 
 # 配置日志
@@ -69,6 +70,9 @@ class CleanerView(ttk.Frame):
         self._create_filter_bar()
         self._create_results_tree()
         self._create_action_bar()
+
+        # 订阅扫描完成事件
+        self._subscribe_events()
 
         logger.info("CleanerView initialized")
 
@@ -325,6 +329,27 @@ class CleanerView(ttk.Frame):
                 f for f in self.scan_results
                 if hasattr(f, 'risk_level') and f.risk_level.name == filter_value
             ]
+
+    def _sort_results(self, results: List[FileInfo]) -> List[FileInfo]:
+        """排序结果"""
+        reverse = self.sort_reverse
+
+        if self.sort_column == "name":
+            return sorted(results, key=lambda x: x.path.name.lower(), reverse=reverse)
+        elif self.sort_column == "path":
+            return sorted(results, key=lambda x: str(x.path), reverse=reverse)
+        elif self.sort_column == "size":
+            return sorted(results, key=lambda x: x.size, reverse=reverse)
+        elif self.sort_column == "modified_time":
+            return sorted(results, key=lambda x: x.modified_time, reverse=reverse)
+        elif self.sort_column == "risk_level":
+            return sorted(
+                results,
+                key=lambda x: getattr(x, 'risk_level', None) or 'UNKNOWN',
+                reverse=reverse
+            )
+        else:
+            return results
 
     def _sort_results(self, results: List[FileInfo]) -> List[FileInfo]:
         """排序结果"""
@@ -658,6 +683,37 @@ class CleanerView(ttk.Frame):
         }
 
         return risk_labels.get(risk.name, "未知")
+
+    def _subscribe_events(self) -> None:
+        """订阅事件总线事件"""
+        event_bus = EventBus()
+        event_bus.subscribe(EventType.SCAN_COMPLETED, self._on_scan_completed)
+        logger.debug("CleanerView subscribed to SCAN_COMPLETED event")
+
+    def _on_scan_completed(self, event: Event) -> None:
+        """
+        扫描完成事件处理器
+
+        从 ScanController 获取匹配的文件并加载到视图中。
+        """
+        try:
+            # 从扫描控制器获取所有匹配的文件
+            matched_files = self.main_window.scan_controller.get_matched_files()
+
+            if matched_files:
+                logger.info(f"Loading {len(matched_files)} matched files into view")
+                self.load_scan_results(matched_files)
+                self.scan_btn.config(state=tk.NORMAL)
+            else:
+                logger.warning("No matched files found")
+                self.scan_results.clear()
+                self._populate_tree()
+                self._update_stats()
+                self.scan_btn.config(state=tk.NORMAL)
+
+        except Exception as e:
+            logger.error(f"Error loading scan results: {e}", exc_info=True)
+            self.scan_btn.config(state=tk.NORMAL)
 
 
 def test_cleaner_view():

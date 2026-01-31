@@ -271,11 +271,13 @@ class ScanController:
                 match = self.rule_engine.match_file(file_info)
 
                 if match.matched:
-                    risk_level = match.risk_level.name
-                    self._matched_files[risk_level].append(file_info)
+                    risk_level = match.risk_level
+                    # 将 risk_level 附加到 file_info 对象上，供 UI 筛选使用
+                    file_info.risk_level = risk_level
+                    self._matched_files[risk_level.name].append(file_info)
                     logger.debug(
                         f"File matched: {file_info.path.name} - "
-                        f"Rule: {match.rule.name} - Risk: {risk_level}"
+                        f"Rule: {match.rule.name} - Risk: {risk_level.name}"
                     )
                 else:
                     self._matched_files['UNMATCHED'].append(file_info)

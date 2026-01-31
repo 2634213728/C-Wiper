@@ -15,7 +15,9 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Set, Callable
 from difflib import SequenceMatcher
 
-from src.controllers.state_manager import StateManager
+# 延迟导入以避免循环导入
+StateMgr = None
+
 from src.models.scan_result import FileInfo
 from src.utils.event_bus import EventBus, EventType, Event
 
@@ -121,7 +123,7 @@ class AppAnalyzer:
 
     def __init__(
         self,
-        state_manager: Optional[StateManager] = None,
+        state_manager = None,
         event_bus: Optional[EventBus] = None
     ):
         """
@@ -131,7 +133,12 @@ class AppAnalyzer:
             state_manager: 状态管理器实例，默认使用全局单例
             event_bus: 事件总线实例，默认使用全局单例
         """
-        self.state_manager = state_manager or StateManager()
+        global StateMgr
+        if StateMgr is None:
+            from src.controllers.state_manager import StateManager as SM
+            StateMgr = SM
+
+        self.state_manager = state_manager or StateMgr()
         self.event_bus = event_bus or EventBus()
         self._cancelled = False
 

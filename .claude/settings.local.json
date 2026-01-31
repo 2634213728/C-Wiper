@@ -4,7 +4,8 @@
       "Bash(dir:*)",
       "Bash(test:*)",
       "Bash(python:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(pip install:*)"
     ]
   }
 }
